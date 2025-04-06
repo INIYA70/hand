@@ -32,4 +32,9 @@ if uploaded_file is not None:
                 <div style="padding-top: 20px;">
                     <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 10px;">{formatted_output}</pre>
                 </div>
-                ""
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.error("No readable text found in the image.")
+
