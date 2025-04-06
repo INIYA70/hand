@@ -1,32 +1,35 @@
 import streamlit as st
+import easyocr
 from PIL import Image
-from utils import extract_text
+import os
 
-st.set_page_config(layout="wide")
-st.markdown('<link rel="stylesheet" href="style.css">', unsafe_allow_html=True)
+st.set_page_config(page_title="Handwritten Text Extractor", layout="wide", initial_sidebar_state="expanded")
+st.title("📝 Handwritten Note to Text Converter")
 
-st.title("📝 Handwritten Notes to Typed Page")
+uploaded_file = st.file_uploader("Upload your handwritten note image", type=["png", "jpg", "jpeg"])
 
-uploaded_image = st.file_uploader("Upload your handwritten note", type=["jpg", "jpeg", "png"])
-
-if uploaded_image:
-    image = Image.open(uploaded_image)
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
     st.image(image, caption="Uploaded Handwritten Note", use_column_width=True)
 
-    with st.spinner("Extracting text..."):
-        extracted_text = extract_text(image)
+    with st.spinner("Extracting text... Please wait"):
+        reader = easyocr.Reader(['en'])
+        result = reader.readtext(uploaded_file)
 
-    # ---- Layout: Top right
-    col1, col2 = st.columns([8, 2])
-    with col2:
-        st.markdown('<div class="top-right">Date: ____<br>Page No: 1</div>', unsafe_allow_html=True)
+        # Extract only the text part from result, filter None or empty values
+        extracted_text = [text[1] for text in result if text[1]]
 
-    # ---- Title
-    st.markdown('<div class="title">Introduction</div>', unsafe_allow_html=True)
+        # Join and display the formatted output
+        if extracted_text:
+            formatted_output = "\n".join(extracted_text)
+            st.markdown(
+                f"""
+                <div style="text-align: right;">
+                    <b>Date:</b> _____<br>
+                    <b>Page No:</b> 1
+                </div>
 
-    # ---- Subtitle
-    st.markdown('<div class="header">What is <span style="color:gold">machine learning</span>?</div>', unsafe_allow_html=True)
-
-    # ---- Extracted Text
-    formatted_output = "\n".join(extracted_text)
-    st.write(formatted_output)
+                <div style="padding-top: 20px;">
+                    <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 10px;">{formatted_output}</pre>
+                </div>
+                ""
